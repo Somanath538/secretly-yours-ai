@@ -1,66 +1,63 @@
-require('dotenv').config();
-const express = require('express');
-const path = require('path');
-const { createClient } = require('@libsql/client');
-
-const app = express();
-const PORT = process.env.PORT || 3000;
-const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || "change-this";
-
-const db = createClient({
-  url: process.env.TURSO_DATABASE_URL,
-  authToken: process.env.TURSO_AUTH_TOKEN,
-});
-
-// CRITICAL FIX FOR BIGINT
-BigInt.prototype.toJSON = function() { return Number(this); };
-
-app.use(express.json());
-app.use(express.static(path.join(__dirname, 'public')));
-
-(async () => {
-  await db.execute(`CREATE TABLE IF NOT EXISTS messages (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    sender_name TEXT NOT NULL,
-    recipient_name TEXT NOT NULL,
-    message TEXT NOT NULL,
-    created_at TEXT NOT NULL DEFAULT (datetime('now'))
-  )`);
-  console.log("Turso DB Connected!");
-})();
-
-function requireAdmin(req, res, next) {
-  const token = req.headers['x-admin-token'];
-  console.log("Admin try with token:", token ? "present" : "missing");
-  if (token !== ADMIN_PASSWORD) {
-    return res.status(401).json({ error: "Unauthorized: Wrong password" });
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Private Vault - Secretly Yours</title>
+<style>
+body{font-family:Arial;background:#fef6ff;display:flex;justify-content:center;align-items:center;min-height:100vh;margin:0}
+.card{background:white;padding:30px;border-radius:16px;box-shadow:0 10px 30px rgba(0,0,0,0.1);width:90%;max-width:500px}
+input{width:100%;padding:12px;margin:10px 0;border:1px solid #ddd;border-radius:8px;box-sizing:border-box}
+button{width:100%;padding:12px;background:#a855f7;color:white;border:none;border-radius:8px;cursor:pointer;font-weight:bold}
+button:hover{background:#9333ea}
+.msg{border-bottom:1px solid #eee;padding:12px 0}
+.msg b{color:#a855f7}
+#vault{display:none}
+</style>
+</head>
+<body>
+<div class="card">
+<div id="login">
+<h2>🔒 Private Vault</h2>
+<p>You can open the little box of feelings</p>
+<input type="password" id="pass" placeholder="Enter vault password">
+<button onclick="unlock()">Unlock the vault</button>
+<p id="err" style="color:red"></p>
+<a href="/">Back to confession page</a>
+</div>
+<div id="vault">
+<h2>💌 Secret Messages</h2>
+<div id="list"></div>
+<button onclick="location.reload()" style="margin-top:20px;background:#eee;color:#333">Lock Vault</button>
+</div>
+</div>
+<script>
+async function unlock(){
+  const token = document.getElementById('pass').value;
+  const err = document.getElementById('err');
+  err.textContent = 'Loading...';
+  try{
+    const res = await fetch('/api/admin/messages', { headers: { 'x-admin-token': token } });
+    if(!res.ok){
+      const data = await res.json();
+      throw new Error(data.error || 'Wrong password');
+    }
+    const messages = await res.json();
+    document.getElementById('login').style.display='none';
+    document.getElementById('vault').style.display='block';
+    const list = document.getElementById('list');
+    if(messages.length===0){ list.innerHTML='<p>No messages yet</p>'; return; }
+    list.innerHTML = messages.map(m=>`
+      <div class="msg">
+        <b>${m.senderName} → ${m.recipientName}</b><br>
+        ${m.message}<br>
+        <small style="color:#999">${new Date(m.createdAt).toLocaleString()}</small>
+      </div>
+    `).join('');
+  }catch(e){
+    err.textContent = e.message;
   }
-  next();
 }
-
-app.post('/api/messages', async (req, res) => {
-  try {
-    const { senderName, recipientName, message } = req.body;
-    if (!senderName || !recipientName || !message) return res.status(400).json({ error: "All fields required" });
-    const result = await db.execute({ sql: "INSERT INTO messages (sender_name, recipient_name, message) VALUES (?, ?, ?)", args: [senderName, recipientName, message] });
-    res.json({ success: true, id: Number(result.lastInsertRowId) });
-  } catch (e) {
-    console.error(e);
-    res.status(500).json({ error: "Failed to save" });
-  }
-});
-
-app.get('/api/admin/messages', requireAdmin, async (req, res) => {
-  try {
-    const result = await db.execute("SELECT id, sender_name AS senderName, recipient_name AS recipientName, message, created_at AS createdAt FROM messages ORDER BY id DESC");
-    res.json(result.rows);
-  } catch (e) {
-    console.error(e);
-    res.status(500).json({ error: "Failed to fetch" });
-  }
-});
-
-app.get('/admin', (req, res) => res.sendFile(path.join(__dirname, 'public/admin.html')));
-app.get('/', (req, res) => res.sendFile(path.join(__dirname, 'public/index.html')));
-
-app.listen(PORT, () => console.log(`Server running on ${PORT}`));
+</script>
+</body>
+</html>
