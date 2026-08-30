@@ -3,9 +3,14 @@
   "version": "2.0.0",
   "description": "Secretly Yours — confession box with private admin vault and AI chat.",
   "main": "server.js",
-  "scripts": { "start": "node server.js", "dev": "node server.js" },
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node server.js"
+  },
   "dependencies": {
+    "@libsql/client": "^0.17.4",
     "better-sqlite3": "^11.7.0",
+    "dotenv": "^17.4.2",
     "express": "^4.21.2",
     "openai": "^5.12.0"
   }
