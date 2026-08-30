@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="theme-color" content="#fff5fb" />
+  <meta name="description" content="Say what your heart has been too shy to say." />
+  <title>Secretly Yours 💌</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Playfair+Display:wght@600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/style.css" />
+</head>
+<body>
+  <div class="ambient ambient-one"></div>
+  <div class="ambient ambient-two"></div>
+
+  <div class="floating-hearts" aria-hidden="true">
+    <span>♡</span><span>✦</span><span>♡</span><span>⋆</span><span>♥</span>
+  </div>
+
+  <main class="page">
+    <section class="hero">
+      <div class="tiny-badge">✨ a tiny corner for big feelings</div>
+      <h1>Secretly <em>Yours</em> 💌</h1>
+      <p class="subtitle">
+        Got something to say but your courage.exe isn't responding?
+        <br class="desktop-only" />
+        Write it here. We promise not to judge. 🫶
+      </p>
+    </section>
+
+    <section class="card" aria-label="Confession form">
+      <div class="card-top">
+        <div class="envelope">💌</div>
+        <div>
+          <h2>Leave a little note</h2>
+          <p>Confession, compliment, apology, chaos... anything goes.</p>
+        </div>
+      </div>
+
+      <form id="messageForm">
+        <div class="field">
+          <label for="senderName">👤 Your name</label>
+          <input id="senderName" name="senderName" type="text"
+                 placeholder="What should they call you?" autocomplete="name" required />
+        </div>
+
+        <div class="field">
+          <label for="recipientName">💗 This little message is for...</label>
+          <input id="recipientName" name="recipientName" type="text"
+                 placeholder="Their name..." required />
+        </div>
+
+        <div class="field">
+          <div class="label-row">
+            <label for="message">📝 Say what you really want to say</label>
+            <span>no word limit ♡</span>
+          </div>
+          <textarea id="message" name="message" rows="10"
+                    placeholder="Dear you...
+
+I don't know how to say this in person, so here goes..." required></textarea>
+        </div>
+
+        <div class="tiny-note">
+          🔒 Your message is sent privately to the site's message vault.
+        </div>
+
+        <button id="submitBtn" type="submit">
+          <span>Send the little letter</span>
+          <strong>♡</strong>
+        </button>
+      </form>
+    </section>
+
+    <section id="success" class="success-card hidden" aria-live="polite">
+      <div class="success-heart">💗</div>
+      <h2>It has been sent!</h2>
+      <p>
+        Somewhere, someone is about to receive a tiny piece of your heart.
+        <br />Now act normal. 😭
+      </p>
+      <button class="secondary-btn" id="anotherBtn">Write another one ✨</button>
+    </section>
+
+    <footer>
+      made with too many feelings & a little bit of ✨
+      <a class="admin-link" href="/admin.html">private vault</a>
+    </footer>
+  </main>
+
+  <div id="toast" class="toast" role="status"></div>
+  <script src="/app.js"></script>
+</body>
+</html>
