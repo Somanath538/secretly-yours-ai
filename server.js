@@ -48,12 +48,13 @@ app.post("/api/messages", async (req, res) => {
     sql: "INSERT INTO messages (sender_name, recipient_name, message) VALUES (?, ?, ?)",
     args: [senderName, recipientName, message],
   });
-  res.json({ success: true, id: result.lastInsertRowid });
+    res.json({ success: true, id: Number(result.lastInsertRowId) });
 });
 
 app.get("/api/admin/messages", requireAdmin, async (req, res) => {
-  const result = await db.execute("SELECT id, sender_name AS senderName, recipient_name AS recipientName, message, created_at AS createdAt FROM messages ORDER BY id DESC");
-  res.json(result.rows);
+  const result = await db.execute("SELECT id, sender_name AS senderName, recipient_name AS recipientName, message, created_at FROM messages ORDER BY id DESC");
+    const rows = result.rows.map(r => ({ ...r, id: Number(r.id) }));
+    res.json(rows);
 });
 
 app.get("*", (req, res) => {
