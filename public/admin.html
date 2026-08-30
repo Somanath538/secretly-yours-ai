@@ -1,55 +1,63 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Private Vault · Secretly Yours</title>
-<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Playfair+Display:wght@600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="/admin.css">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Private Vault - Secretly Yours</title>
+<style>
+body{font-family:Arial;background:#fef6ff;display:flex;justify-content:center;align-items:center;min-height:100vh;margin:0}
+.card{background:white;padding:30px;border-radius:16px;box-shadow:0 10px 30px rgba(0,0,0,0.1);width:90%;max-width:500px}
+input{width:100%;padding:12px;margin:10px 0;border:1px solid #ddd;border-radius:8px;box-sizing:border-box}
+button{width:100%;padding:12px;background:#a855f7;color:white;border:none;border-radius:8px;cursor:pointer;font-weight:bold}
+button:hover{background:#9333ea}
+.msg{border-bottom:1px solid #eee;padding:12px 0}
+.msg b{color:#a855f7}
+#vault{display:none}
+</style>
 </head>
 <body>
-<main class="wrap">
-  <section id="login" class="panel login">
-    <div class="badge">🔐 private area</div>
-    <h1>Message <em>Vault</em></h1>
-    <p>Only you can open the little box of feelings.</p>
-    <form id="loginForm">
-      <input id="password" type="password" placeholder="Admin password" required>
-      <button>Unlock the vault ✨</button>
-    </form>
-    <a href="/">← Back to confession page</a>
-  </section>
-
-  <section id="dashboard" class="hidden">
-    <header>
-      <div><div class="badge">💌 private message vault</div><h1>Your <em>confessions</em></h1></div>
-      <button id="logout" class="ghost">Lock vault 🔒</button>
-    </header>
-
-    <div class="stats">
-      <div><strong id="count">0</strong><span>messages</span></div>
-      <div><strong id="people">0</strong><span>recipients</span></div>
-    </div>
-
-    <div class="grid">
-      <section class="panel messages-panel">
-        <div class="section-head"><h2>Received messages</h2><button id="refresh" class="mini">↻ Refresh</button></div>
-        <input id="search" class="search" placeholder="Search names or messages...">
-        <div id="messages"></div>
-      </section>
-
-      <section class="panel ai-panel">
-        <div class="ai-head"><span>🤖</span><div><h2>Ask the feelings bot</h2><p>It can read your private vault.</p></div></div>
-        <div id="chat" class="chat"><div class="bubble ai">Hi! Ask me about the messages you've received. 👀💗</div></div>
-        <form id="chatForm">
-          <textarea id="question" rows="3" placeholder="e.g. Who sent the sweetest message?"></textarea>
-          <button>Ask AI ✨</button>
-        </form>
-        <p class="warning">Your AI request sends the message vault to your configured AI provider. Don't use this with messages you aren't permitted to process.</p>
-      </section>
-    </div>
-  </section>
-</main>
-<script src="/admin.js"></script>
+<div class="card">
+<div id="login">
+<h2>🔒 Private Vault</h2>
+<p>You can open the little box of feelings</p>
+<input type="password" id="pass" placeholder="Enter vault password">
+<button onclick="unlock()">Unlock the vault</button>
+<p id="err" style="color:red"></p>
+<a href="/">Back to confession page</a>
+</div>
+<div id="vault">
+<h2>💌 Secret Messages</h2>
+<div id="list"></div>
+<button onclick="location.reload()" style="margin-top:20px;background:#eee;color:#333">Lock Vault</button>
+</div>
+</div>
+<script>
+async function unlock(){
+  const token = document.getElementById('pass').value;
+  const err = document.getElementById('err');
+  err.textContent = 'Loading...';
+  try{
+    const res = await fetch('/api/admin/messages', { headers: { 'x-admin-token': token } });
+    if(!res.ok){
+      const data = await res.json();
+      throw new Error(data.error || 'Wrong password');
+    }
+    const messages = await res.json();
+    document.getElementById('login').style.display='none';
+    document.getElementById('vault').style.display='block';
+    const list = document.getElementById('list');
+    if(messages.length===0){ list.innerHTML='<p>No messages yet</p>'; return; }
+    list.innerHTML = messages.map(m=>`
+      <div class="msg">
+        <b>${m.senderName} → ${m.recipientName}</b><br>
+        ${m.message}<br>
+        <small style="color:#999">${new Date(m.createdAt).toLocaleString()}</small>
+      </div>
+    `).join('');
+  }catch(e){
+    err.textContent = e.message;
+  }
+}
+</script>
 </body>
 </html>
